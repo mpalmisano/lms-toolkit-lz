@@ -3,7 +3,7 @@
 # The Ed-Fi Alliance licenses this file to you under the Apache License, Version 2.0.
 # See the LICENSE and NOTICES files in the project root for more information.
 
-from __future__ import annotations
+# from __future__ import annotations
 from typing import Any, Dict, List, Optional
 from typing import TYPE_CHECKING
 
@@ -76,7 +76,9 @@ class PaginatedResult():
             return 0
         return int(self._api_response["total"])
 
-    def get_next_page(self) -> Optional[PaginatedResult]:
+    # def get_next_page(self) -> Optional[PaginatedResult]:  # Future import of annotations not working in our version
+    # of Python on Composer
+    def get_next_page(self):
         """Send an HTTP GET request for the next page.
 
         Returns
@@ -119,6 +121,11 @@ class PaginatedResult():
 
         items: List[Dict[str, Any]] = []
         while True:
+
+            # Some responses here are a single dictionary so handle these
+            if not isinstance(self.current_page_items, list):
+                self.current_page_items = [self.current_page_items]
+
             items = items + self.current_page_items
             if self.get_next_page() is None:
                 break

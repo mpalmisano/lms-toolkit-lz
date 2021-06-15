@@ -19,7 +19,7 @@ from requests.packages.urllib3.exceptions import ProtocolError  # type: ignore
 from requests_oauthlib import OAuth1Session  # type: ignore
 
 from .paginated_result import PaginatedResult
-from edfi_schoology_extractor.helpers.constants import RESOURCE_NAMES
+from ..helpers.constants import RESOURCE_NAMES
 
 DEFAULT_URL = os.environ.get("SCHOOLOGY_BASE_URL") or "https://api.schoology.com/v1/"
 DEFAULT_PAGE_SIZE = 20
@@ -462,7 +462,8 @@ class RequestClient:
             A parsed response from the server
         """
 
-        url = f"sections/{section_id}/assignments?{self._build_query_params_for_first_page(page_size)}"
+        url = f"sections/{section_id}/assignments?{self._build_query_params_for_first_page(page_size)}"\
+              f"&with_dropbox_stats=TRUE"  # Add extra fields"
 
         return PaginatedResult(
             self,
@@ -537,7 +538,7 @@ class RequestClient:
             A parsed response from the server
         """
 
-        url = f"users?{self._build_query_params_for_first_page(page_size)}"
+        url = f"users?{self._build_query_params_for_first_page(page_size)}&extended=TRUE"  # Get extension fields
 
         return PaginatedResult(
             self, page_size, self.get(url), "user", self.base_url + url
@@ -748,4 +749,128 @@ class RequestClient:
             self.get(url),
             RESOURCE_NAMES.SECTION_UPDATE_COMMENT,
             self.base_url + url,
+        )
+
+    #### Start of Landing Zone additions ####
+
+    def get_schools(self, page_size: int = DEFAULT_PAGE_SIZE) -> PaginatedResult:
+        """
+        Gets all the schools from the Schoology API
+
+        Parameters
+        ----------
+        page_size : int
+            Number of items per page.
+
+        Returns
+        -------
+        PaginatedResult
+            A parsed response from the server
+
+        """
+
+        url = f"schools?{self._build_query_params_for_first_page(page_size)}"
+
+        return PaginatedResult(
+            self, page_size, self.get(url), "school", self.base_url + url
+        )
+
+    def get_school_buildings(self, school_id: int, page_size: int = DEFAULT_PAGE_SIZE) -> PaginatedResult:
+        """
+        Gets all the school buildings for a school from the Schoology API
+
+        Parameters
+        ----------
+        page_size : int
+            Number of items per page.
+        school_id: int
+            School id to request buildings for
+
+        Returns
+        -------
+        PaginatedResult
+            A parsed response from the server
+
+        """
+
+        url = f"schools/{school_id}/buildings?{self._build_query_params_for_first_page(page_size)}"
+
+        return PaginatedResult(
+            self, page_size, self.get(url), "building", self.base_url + url
+        )
+
+    def get_user_grades(self, user_id: int, resource: str, page_size: int = DEFAULT_PAGE_SIZE) -> PaginatedResult:
+        """
+        Gets all the grades for a user from the Schoology API
+
+        Parameters
+        ----------
+        page_size : int
+            Number of items per page.
+        user_id: int
+            User id to request grades for.
+        resource: str
+            Resource to access in the returned grades.
+
+        Returns
+        -------
+        PaginatedResult
+            A parsed response from the server
+
+        """
+
+        url = f"users/{user_id}/grades?{self._build_query_params_for_first_page(page_size)}"
+
+        return PaginatedResult(
+            self, page_size, self.get(url), resource, self.base_url + url
+        )
+
+    def get_section_grades(self, section_id: int, resource: str, page_size: int = DEFAULT_PAGE_SIZE) -> PaginatedResult:
+        """
+        Gets all the grades for a section from the Schoology API
+
+        Parameters
+        ----------
+        page_size : int
+            Number of items per page.
+        section_id: int
+            Section id to request grades for.
+        resource: str
+            Resource to access in the returned grades.
+
+        Returns
+        -------
+        PaginatedResult
+            A parsed response from the server
+
+        """
+
+        url = f"sections/{section_id}/grades?{self._build_query_params_for_first_page(page_size)}"
+
+        return PaginatedResult(
+            self, page_size, self.get(url), resource, self.base_url + url
+        )
+
+    def get_section_grading_categories(self, section_id: int, page_size: int = DEFAULT_PAGE_SIZE) -> PaginatedResult:
+        """
+        Gets all the grading categories for a section from the Schoology API
+
+        Parameters
+        ----------
+        page_size : int
+            Number of items per page.
+        section_id: int
+            Section id to request grading categories for.
+
+        Returns
+        -------
+        PaginatedResult
+            A parsed response from the server
+
+        """
+
+        url = f"sections/{section_id}/grading_categories?{self._build_query_params_for_first_page(page_size)}"
+
+        return PaginatedResult(
+            self, page_size, self.get(url), "grading_category", self.base_url + url
         )
